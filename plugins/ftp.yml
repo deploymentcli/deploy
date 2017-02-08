@@ -1,0 +1,8 @@
+name: FTP
+version: 0.0.1
+vars:
+  - FTP_HOST: "okokko"
+  - FTP_USER: "root"
+  - FTP_PASS: "password"
+  - FTP_PATH: "okokko"
+command: "docker run -it {{PACKAGE}}"

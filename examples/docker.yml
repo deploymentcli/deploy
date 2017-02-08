@@ -1,3 +1,11 @@
 name: namehere
-method: docker
-var: jijij
+location: "/var/www/html/"
+plugins:
+  - "ftp"
+configs:
+  DOCKER_PACKAGE: "hunterlong/example"
+  ENTRY_COMMAND: "bin/bash echo oyoyoyoy"
+  FTP_USER: "hunterlong"
+  FTP_PASS: "okdosfodkokfodks"
+  FTP_PATH: "/var/www/html/public"
+

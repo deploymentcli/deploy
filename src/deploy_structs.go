@@ -2,6 +2,21 @@ package DeployCli;
 
 import "time"
 
+
+
+type Plugin struct {
+	Name string
+	Version string
+}
+
+
+type Config struct {
+	Name string
+	Method string
+	Vars string
+}
+
+
 type EmptyStruct struct {
 	Name string `json:"name"`
 }

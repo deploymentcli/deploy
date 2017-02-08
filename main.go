@@ -18,12 +18,9 @@ var (
 	version string = "0.0.1"
 )
 
+var LoadedPlugins []DeployCli.Plugin
 
-type Config struct {
-	Name string
-	Method string
-	Vars string
-}
+
 
 
 func main() {
@@ -46,7 +43,7 @@ func main() {
 		panic(err)
 	}
 
-	var config Config
+	var config DeployCli.Config
 
 	err = yaml.Unmarshal(yamlFile, &config)
 	if err != nil {
@@ -77,25 +74,52 @@ var root = &cli.Command{
 }
 
 
+//type argT struct {
+//	cli.Helper
+//	Username string `cli:"u,username" usage:"storj account" prompt:"Email"`
+//	Password string `pw:"p,password" usage:"password to storj account" prompt:"Password"`
+//}
+
 type argT struct {
-	cli.Helper
-	Username string `cli:"u,username" usage:"storj account" prompt:"Email"`
-	Password string `pw:"p,password" usage:"password to storj account" prompt:"Password"`
+	File string `cli:"*f,file" usage:"deployment file"`
+}
+
+
+
+type Deployment struct {
+	Name string
+	Location string
+	Plugins []string
+	Commands []string
 }
 
 var runit = &cli.Command{
 	Name: "run",
 	Desc: "run a deployment config file",
+	Argv: func() interface{} { return new(argT) },
 	Fn: func(ctx *cli.Context) error {
-		cli.Run(new(argT), func(ctx *cli.Context) error {
-			argv := ctx.Argv().(*argT)
-			DeployCli.ApiEmail = argv.Username;
-			DeployCli.ApiPass = DeployCli.EncryptPassword(argv.Password);
-			DeployCli.ApiEndpoint = "https://api.storj.io/";
-			response := DeployCli.SetAPIInfo(apiEmail,apiPass, apiEndpoint)
-			ctx.String((ctx.Color().Yellow(response+"\n")))
-			return nil
-		})
+		argv := ctx.Argv().(*argT)
+
+		filename, _ := filepath.Abs(argv.File)
+		yamlFile, err := ioutil.ReadFile(filename)
+
+		if err != nil {
+			panic(err)
+		}
+
+		var deployment Deployment
+
+		err = yaml.Unmarshal(yamlFile, &deployment)
+		if err != nil {
+			panic(err)
+		}
+
+		ctx.String((ctx.Color().Yellow("Running "+deployment.Name)))
+		ctx.String(" Plugins: ");
+		for _, v := range deployment.Plugins {
+			ctx.String(v)
+		}
+
 		return nil
 	},
 }
@@ -105,9 +129,33 @@ var plugins = &cli.Command{
 	Name: "plugins",
 	Desc: "view all plugins installed",
 	Fn: func(ctx *cli.Context) error {
-		ctx.String((ctx.Color().Yellow("Fetching your plugins...\n")))
-		userEmail := DeployCli.GetUser()
-		ctx.String(userEmail)
+		ctx.String((ctx.Color().Yellow("Fetching plugins...\n")))
+
+		files, _ := filepath.Glob("plugins/*.yml")
+
+		for _, v := range files {
+
+			filename, _ := filepath.Abs(v)
+			yamlFile, err := ioutil.ReadFile(filename)
+
+			if err != nil {
+				panic(err)
+			}
+
+			var plugin DeployCli.Plugin
+
+			err = yaml.Unmarshal(yamlFile, &plugin)
+			if err != nil {
+				panic(err)
+			}
+
+			outputString := plugin.Name+" ("+plugin.Version+") at "+v+"\n"
+
+			ctx.String(outputString)
+
+		}
+
+
 		ctx.String(DeployCli.ApiEmail)
 		//ctx.String(buckets)
 		return nil
