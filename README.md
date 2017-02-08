@@ -1,13 +1,13 @@
-# stroj-go
+# deploy
 
 
 #### MacOSX
 ```bash
-brew tap hunterlong/storj-go
-brew install storj-go
+brew tap deploymentcli/deploy
+brew install deploy
 ```
 
 #### Ubuntu or Debian
 ```bash
-curl https://raw.githubusercontent.com/hunterlong/storj-go/master/install.sh | bash
+curl https://raw.githubusercontent.com/deploymentcli/deploy/master/install.sh | bash
 ```
