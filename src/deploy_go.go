@@ -179,7 +179,7 @@ func SendRequestStatusCode(method string, url string, input string) (int, interf
 
 
 func GetNewVersion() string {
-	url := "https://raw.githubusercontent.com/hunterlong/storj-go/master/version.txt"
+	url := "https://raw.githubusercontent.com/deploymentcli/deploy/master/version.txt"
 	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte("")))
 	client := &http.Client{}
 	resp, err := client.Do(req)

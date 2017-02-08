@@ -5,7 +5,10 @@ import (
 	"os"
 	"fmt"
 	"github.com/mkideal/cli"
+	"gopkg.in/yaml.v2"
 	DeployCli "./src"
+	"path/filepath"
+	"io/ioutil"
 )
 
 var (
@@ -16,19 +19,40 @@ var (
 )
 
 
+type Config struct {
+	Name string
+	Method string
+	Vars string
+}
+
 
 func main() {
 
 	if err := cli.Root(root,
 		cli.Tree(help),
-		cli.Tree(login),
-		cli.Tree(buckets),
+		cli.Tree(runit),
+		cli.Tree(plugins),
 		cli.Tree(thisversion),
 		cli.Tree(updater),
 	).Run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+
+	filename, _ := filepath.Abs("examples/docker.yml")
+	yamlFile, err := ioutil.ReadFile(filename)
+
+	if err != nil {
+		panic(err)
+	}
+
+	var config Config
+
+	err = yaml.Unmarshal(yamlFile, &config)
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 var help = cli.HelpCommand("show all the useful commands")
@@ -45,10 +69,9 @@ var root = &cli.Command{
 	Argv: func() interface{} { return new(rootT) },
 	Fn: func(ctx *cli.Context) error {
 		//argv := ctx.Argv().(*rootT)
-		ctx.String("\n==========  "+(ctx.Color().Blue("storj-go"))+"  ==========\n")
-		ctx.String("======= "+(ctx.Color().Yellow("API for Storj.io"))+" =======\n")
+		ctx.String("\n==========  "+(ctx.Color().Blue("deploy"))+"  ==========\n")
 		ctx.String("================================\n")
-		ctx.String("Try this out: '" + (ctx.Color().Magenta("storj-go help")) + "'\n\n")
+		ctx.String("Try this out: '" + (ctx.Color().Magenta("deploy help")) + "'\n\n")
 		return nil
 	},
 }
@@ -56,13 +79,13 @@ var root = &cli.Command{
 
 type argT struct {
 	cli.Helper
-	Username string `cli:"u,username" usage:"storj account" prompt:"Storj Email"`
-	Password string `pw:"p,password" usage:"password to storj account" prompt:"Storj Password"`
+	Username string `cli:"u,username" usage:"storj account" prompt:"Email"`
+	Password string `pw:"p,password" usage:"password to storj account" prompt:"Password"`
 }
 
-var login = &cli.Command{
-	Name: "login",
-	Desc: "login to Storj.io for access",
+var runit = &cli.Command{
+	Name: "run",
+	Desc: "run a deployment config file",
 	Fn: func(ctx *cli.Context) error {
 		cli.Run(new(argT), func(ctx *cli.Context) error {
 			argv := ctx.Argv().(*argT)
@@ -78,11 +101,11 @@ var login = &cli.Command{
 }
 
 
-var buckets = &cli.Command{
-	Name: "buckets",
-	Desc: "view all of my buckets",
+var plugins = &cli.Command{
+	Name: "plugins",
+	Desc: "view all plugins installed",
 	Fn: func(ctx *cli.Context) error {
-		ctx.String((ctx.Color().Yellow("Fetching your Buckets...\n")))
+		ctx.String((ctx.Color().Yellow("Fetching your plugins...\n")))
 		userEmail := DeployCli.GetUser()
 		ctx.String(userEmail)
 		ctx.String(DeployCli.ApiEmail)
@@ -94,10 +117,9 @@ var buckets = &cli.Command{
 
 var thisversion = &cli.Command{
 	Name: "version",
-	Desc: "current storj-go version",
+	Desc: "current deploy version",
 	Fn: func(ctx *cli.Context) error {
-		ctx.String("storj-go Version: " + (ctx.Color().Red(version)) + "\n")
-		ctx.String("Check for an update: '" + (ctx.Color().Magenta("storj-go update")) + "'\n")
+		ctx.String("deploy Version: " + (ctx.Color().Red(version)) + "\n")
 		return nil
 	},
 }
@@ -113,11 +135,11 @@ var updater = &cli.Command{
 			ctx.String("Newest Version: " + (ctx.Color().Red(newVersion)) + "\n")
 			ctx.String("Using Version:  " + (ctx.Color().Red(version)) + "\n")
 			ctx.String(ctx.Color().Red("You should do an update!\n"))
-			ctx.String("Run command: \n" + (ctx.Color().White("curl https://raw.githubusercontent.com/hunterlong/storj-go/master/install.sh | bash")) + "\n")
+			ctx.String("Run command: \n" + (ctx.Color().White("curl https://raw.githubusercontent.com/deploymentcli/deploy/master/install.sh | bash")) + "\n")
 		} else {
 			ctx.String("Newest Version: " + (ctx.Color().Green(newVersion)) + "\n")
 			ctx.String("Using Version:  " + (ctx.Color().Green(version)) + "\n")
-			ctx.String(ctx.Color().Green("storj-go is up to date!\n"))
+			ctx.String(ctx.Color().Green("deploy is up to date!\n"))
 		}
 
 		return nil
